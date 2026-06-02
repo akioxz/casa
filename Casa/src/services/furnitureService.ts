@@ -175,5 +175,85 @@ export const furnitureService = {
     }
     
     return data as unknown as ActivityLog[];
+  },
+
+  seedMockFurniture: async (): Promise<void> => {
+    const unsplashUrls = [
+      'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600',
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600',
+      'https://images.unsplash.com/photo-1503602642458-232111445657?w=600',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600',
+      'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600',
+      'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600',
+      'https://images.unsplash.com/photo-1580481072645-022f9a6dbf27?w=600',
+      'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600',
+      'https://images.unsplash.com/photo-1519947486511-46149fa0a254?w=600',
+      'https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=600',
+      'https://images.unsplash.com/photo-1618220179428-22790b461013?w=600',
+      'https://images.unsplash.com/photo-1586105251261-72a756497a11?w=600',
+      'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600',
+      'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600',
+      'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600',
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600',
+      'https://images.unsplash.com/photo-1503602642458-232111445657?w=600',
+      'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600'
+    ];
+
+    const mockNames = [
+      'Puff White Cloud Chair', 'Textured Moss Chair', 'Walnut Tubular Seat', 
+      'Cream Bouclé Lounge', 'Tubular Tan Occasional', 'Plush White Swivel', 
+      'Layered Caramel Chair', 'Curved Crimson Chair', 'Ivory Cloud Recliner', 
+      'Sculptural White Bouclé', 'Origami Accent Chair', 'Slouchy Taupe Lounger', 
+      'Rounded Ivory Swivel', 'Sage Wrap Chair', 'Low Profile Dune', 
+      'Wicker Mushroom Chair', 'Rattan Wave Rocker', 'Cocoon Wicker Pod', 
+      'Boho Rattan Lounger', 'Rattan Curl Lounge'
+    ];
+
+    const mockDescriptions = [
+      'Sculptural cloud-shaped lounge chair upholstered in shaggy cream bouclé fabric, adding warmth to any room.',
+      'A striking structural chair wrapped in a vibrant green textured wool, combining bold color with minimalist geometry.',
+      'Mid-century modernist design featuring dark walnut legs supporting a deeply tufted beige cushion structure.',
+      'An elegant oversized lounge chair featuring soft cream bouclé upholstery with solid wooden ball feet.',
+      'A minimalist piece showcasing an unbroken curved silhouette wrapped in light beige performance fabric.',
+      'A contemporary swivel chair featuring an overlapping folded design wrapped in luxurious faux fur.',
+      'A masterpiece of texture featuring three layers of curled caramel bouclé on a solid ribbed walnut pedestal.',
+      'A striking statement piece wrapped in deep crimson velvet, featuring a bold wrap-around tubular structure.',
+      'Extremely plush lounging chair offering maximum comfort in soft ivory fabric with bold oversized arms.',
+      'Beautiful asymmetrical white chair combining organic curves with textured fabric for a premium minimalist aesthetic.',
+      'A unique folded-style accent chair resting on arched mahogany panels. Perfect blend of Japanese and Mid-Century design.',
+      'Deep taupe relaxation chair offering an oversized slouchy silhouette, perfect for cozying up with a book.',
+      'Classic tub-style swivel chair in an elegant ivory upholstery, bringing subtle softness to formal living rooms.',
+      'Beautiful soft sage green chair featuring a single continuous fabric wrap that acts as arms and backrest.',
+      'A sprawling low-profile lounge chair in textured dune sand color, perfect for relaxed casual seating areas.',
+      'A stunning dome-shaped wicker chair with a wide flared back and a plush white cushion, resting on a solid rattan pedestal base.',
+      'A sculptural rattan rocking chair with a sweeping S-curve silhouette. Handwoven from natural cane with a matte finish.',
+      'An organic egg-shaped wicker pod chair. Entirely handwoven from natural cane into a seamless spherical form.',
+      'A dramatic open-form rattan lounger with a bold cut-through arch design. Inspired by Wabi-Sabi Japanese aesthetics.',
+      'A smooth, minimalist rattan lounge chair formed from a single continuous curl of woven cane — effortlessly elegant.'
+    ];
+
+    const mockCategories = [
+      'Living', 'Living', 'Dining', 'Living', 'Bedroom', 'Workspace', 'Living', 'Living', 'Bedroom', 'Living',
+      'Workspace', 'Living', 'Dining', 'Living', 'Bedroom', 'Outdoor', 'Outdoor', 'Outdoor', 'Outdoor', 'Outdoor'
+    ];
+
+    const mockPrices = [
+      1350.00, 980.00, 1240.00, 1150.00, 890.00, 1050.00, 1650.00, 1450.00, 1800.00, 1250.00,
+      980.00, 1550.00, 1100.00, 1220.00, 1350.00, 1180.00, 1380.00, 920.00, 1450.00, 1290.00
+    ];
+
+    const payload = mockNames.map((name, i) => ({
+      name,
+      price: mockPrices[i],
+      description: mockDescriptions[i],
+      category: mockCategories[i],
+      image_url: unsplashUrls[i],
+      is_deleted: false,
+    }));
+
+    const { error } = await supabase.from('furniture').insert(payload);
+    if (error) throw error;
   }
 };

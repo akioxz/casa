@@ -132,6 +132,21 @@ export const ManageProductsScreen: React.FC<ManageProductsScreenProps> = ({ navi
       ) : products.length === 0 ? (
         <View style={styles.centerContainer}>
           <Text style={styles.emptyText}>No products found in inventory.</Text>
+          <Button
+            title="Seed Sample Products to Database"
+            onPress={async () => {
+              try {
+                setIsLoading(true);
+                await furnitureService.seedMockFurniture();
+                Alert.alert('Success', 'Sample products seeded successfully!');
+                fetchProducts();
+              } catch (err: any) {
+                Alert.alert('Error', err.message || 'Failed to seed sample products.');
+                setIsLoading(false);
+              }
+            }}
+            style={{ marginTop: 16, paddingHorizontal: 20 }}
+          />
         </View>
       ) : (
         <FlatList
