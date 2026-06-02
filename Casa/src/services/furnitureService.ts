@@ -36,7 +36,7 @@ export const furnitureService = {
 
   fetchProductById: async (id: string): Promise<Furniture | null> => {
     const isMockMode = useAuthStore.getState().isMockMode;
-    if (isMockMode) {
+    if (isMockMode || id.startsWith('mock-') || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
       return mockFurniture.find(f => f.id === id) || null;
     }
 
