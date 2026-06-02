@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS, THEME } from '../../constants/theme';
 import { profileSchema, ProfilePayload } from '../../utils/validation';
 import { authService } from '../../services/authService';
@@ -15,6 +16,7 @@ export const AdminProfileScreen: React.FC = () => {
   const { user, signOut } = useAuthStore();
   const [isUpdating, setIsUpdating] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
 
   const {
     control,
@@ -36,6 +38,7 @@ export const AdminProfileScreen: React.FC = () => {
       authService.getUserProfile(user.id).then(({ profile, error }) => {
         if (profile) {
           setProfile(profile);
+          setAvatarUrl(profile.avatar_url || '');
           setValue('username', profile.username);
           setValue('fullName', profile.full_name || '');
           setValue('phoneNumber', profile.phone_number || '');
@@ -47,8 +50,24 @@ export const AdminProfileScreen: React.FC = () => {
     }
   }, [user]);
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Camera roll permission is required to change your photo.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'] as any,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      setAvatarUrl(result.assets[0].uri);
+    }
+  };
+
   const onSubmit = async (data: ProfilePayload) => {
-    // Enforcement of read-only username constraint for Admin
     if (profile && data.username !== profile.username) {
       Alert.alert('Action Denied', 'Administrators cannot change their username for audit integrity.');
       return;
@@ -63,6 +82,7 @@ export const AdminProfileScreen: React.FC = () => {
         full_name: data.fullName,
         phone_number: data.phoneNumber,
         address: data.address,
+        avatar_url: avatarUrl,
       });
       Alert.alert('Success', 'Admin profile updated successfully');
     } catch (err: any) {
@@ -75,15 +95,26 @@ export const AdminProfileScreen: React.FC = () => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <View style={styles.avatarPlaceholder}>
-          <Ionicons name="shield-checkmark" size={40} color={COLORS.surface} />
-        </View>
+        <TouchableOpacity onPress={pickImage} activeOpacity={0.8}>
+          <View style={styles.avatarWrapper}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Ionicons name="shield-checkmark" size={40} color={COLORS.surface} />
+              </View>
+            )}
+            <View style={styles.cameraIconBadge}>
+              <Ionicons name="camera" size={14} color={COLORS.surface} />
+            </View>
+          </View>
+        </TouchableOpacity>
         <Text style={styles.roleText}>Administrator</Text>
       </View>
 
       <View style={styles.formCard}>
         <Text style={styles.sectionTitle}>Profile Details</Text>
-        
+
         <View style={styles.warningBox}>
           <Ionicons name="warning" size={16} color={COLORS.error} style={styles.warningIcon} />
           <Text style={styles.warningText}>
@@ -100,7 +131,7 @@ export const AdminProfileScreen: React.FC = () => {
               value={value}
               onChangeText={onChange}
               error={errors.username?.message}
-              editable={false} // UI Enforcement
+              editable={false}
             />
           )}
         />
@@ -151,7 +182,7 @@ export const AdminProfileScreen: React.FC = () => {
           style={styles.submitBtn}
         />
       </View>
-      
+
       <Button
         title="Log Out Session"
         variant="outline"
@@ -175,6 +206,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: THEME.spacing.xl,
   },
+  avatarWrapper: {
+    position: 'relative',
+    marginBottom: THEME.spacing.sm,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+  },
   avatarPlaceholder: {
     width: 80,
     height: 80,
@@ -182,8 +224,20 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: THEME.spacing.sm,
     ...THEME.shadows.small,
+  },
+  cameraIconBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.primary,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.surface,
   },
   roleText: {
     fontSize: THEME.typography.fontSize.sm,
@@ -229,4 +283,5 @@ const styles = StyleSheet.create({
     borderColor: COLORS.error,
   },
 });
+
 export default AdminProfileScreen;
