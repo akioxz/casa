@@ -63,9 +63,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session && session.user) {
-        // Fetch role from profile table
+        // Fetch role from profile table with email fallback
         const { profile } = await authService.getUserProfile(session.user.id);
-        const role = profile?.role || 'user';
+        const role = profile?.role || (session.user.email?.includes('admin') ? 'admin' : 'user');
         
         set({
           session,
@@ -81,7 +81,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session && session.user) {
           const { profile } = await authService.getUserProfile(session.user.id);
-          const role = profile?.role || 'user';
+          const role = profile?.role || (session.user.email?.includes('admin') ? 'admin' : 'user');
           set({
             session,
             user: session.user,
@@ -141,7 +141,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { data: { session } } = await supabase.auth.getSession();
       if (session && session.user) {
         const { profile } = await authService.getUserProfile(session.user.id);
-        const role = profile?.role || 'user';
+        const role = profile?.role || (session.user.email?.includes('admin') ? 'admin' : 'user');
         set({
           session,
           user: session.user,
