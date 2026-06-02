@@ -20,7 +20,7 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
   const { productId } = route.params;
   const isEdit = !!productId;
   const { isMockMode } = useAuthStore();
-  
+
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(isEdit);
 
@@ -87,20 +87,19 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
 
     setIsUploading(true);
     try {
-      const fileExt = uri.split('.').pop() || 'jpeg';
+      const fileExt = uri.split('.').pop()?.toLowerCase() || 'jpeg';
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      const formData = new FormData();
-      formData.append('files', {
-        uri,
-        name: fileName,
-        type: `image/${fileExt}`,
-      } as any);
+      const response = await fetch(uri);
+      const blob = await response.blob();
 
       const { error } = await supabase.storage
         .from('furniture')
-        .upload(filePath, formData);
+        .upload(filePath, blob, {
+          contentType: `image/${fileExt}`,
+          upsert: true,
+        });
 
       if (error) throw error;
 
@@ -122,7 +121,7 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
       let finalImageUrl = data.imageUrl;
       // Convert to number if the image is a local statically required image (like those in MOCK_FURNITURE)
       if (typeof finalImageUrl === 'string' && !finalImageUrl.startsWith('http') && !finalImageUrl.startsWith('data:') && !isMockMode) {
-         finalImageUrl = await uploadImage(data.imageUrl);
+        finalImageUrl = await uploadImage(data.imageUrl);
       }
 
       const payload = {
@@ -160,19 +159,19 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <Text style={styles.title}>{isEdit ? 'Edit Product' : 'Create Product'}</Text>
       <Text style={styles.subtitle}>{isEdit ? 'Update inventory item' : 'Add a new product to inventory'}</Text>
-      
+
       <View style={styles.formCard}>
         {/* Image Picker */}
         <View style={styles.imageSection}>
           <TouchableOpacity style={styles.imagePickerBtn} onPress={handlePickImage}>
             {watchImageUrl ? (
-              <Image 
+              <Image
                 source={
                   typeof watchImageUrl === 'number'
                     ? watchImageUrl
                     : { uri: watchImageUrl }
-                } 
-                style={styles.previewImage} 
+                }
+                style={styles.previewImage}
               />
             ) : (
               <View style={styles.imagePlaceholder}>
