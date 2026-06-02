@@ -50,6 +50,21 @@ ALTER TABLE public.furniture ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 
 -- =========================================================================
+-- 2.5 HELPER FUNCTIONS (Security Definer to prevent infinite recursion)
+-- =========================================================================
+
+-- Function to check if current user is admin
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =========================================================================
 -- 3. PROFILE POLICIES
 -- =========================================================================
 
@@ -60,7 +75,7 @@ TO authenticated
 USING (
   auth.uid() = id 
   OR 
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  public.is_admin()
 );
 
 -- Policy: Users can update their own profile.
@@ -100,24 +115,24 @@ CREATE POLICY "Allow admin to insert furniture"
 ON public.furniture FOR INSERT 
 TO authenticated 
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  public.is_admin()
 );
 
 CREATE POLICY "Allow admin to update furniture" 
 ON public.furniture FOR UPDATE 
 TO authenticated 
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  public.is_admin()
 )
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  public.is_admin()
 );
 
 CREATE POLICY "Allow admin to delete furniture" 
 ON public.furniture FOR DELETE 
 TO authenticated 
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  public.is_admin()
 );
 
 -- =========================================================================
@@ -129,7 +144,7 @@ CREATE POLICY "Allow admin select logs"
 ON public.activity_logs FOR SELECT 
 TO authenticated 
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  public.is_admin()
 );
 
 -- Policy: Admins can insert logs
@@ -137,7 +152,7 @@ CREATE POLICY "Allow admin insert logs"
 ON public.activity_logs FOR INSERT 
 TO authenticated 
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  public.is_admin()
   AND auth.uid() = admin_id
 );
 
@@ -220,9 +235,9 @@ ON storage.objects FOR ALL
 TO authenticated
 USING (
   bucket_id = 'furniture' 
-  AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  AND public.is_admin()
 )
 WITH CHECK (
   bucket_id = 'furniture' 
-  AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  AND public.is_admin()
 );
