@@ -43,8 +43,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       `Are you sure you want to hide "${item.name}" from the user catalog?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        {
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -61,7 +61,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
   const renderItem = ({ item }: { item: Furniture }) => {
     const isDeleted = item.is_deleted;
-    
+
     return (
       <View style={[styles.productCard, isDeleted && styles.deletedCard]}>
         <View style={styles.imageContainer}>
@@ -69,8 +69,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             source={
               typeof item.image_url === 'string'
                 ? (item.image_url.startsWith('http')
-                    ? { uri: item.image_url }
-                    : { uri: 'data:image/png;base64,' + item.image_url })
+                  ? { uri: item.image_url }
+                  : { uri: 'data:image/png;base64,' + item.image_url })
                 : item.image_url
             }
             style={styles.productImage}
@@ -91,18 +91,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </View>
           <Text style={styles.productCategory}>{item.category}</Text>
           <Text style={styles.productPrice}>{formatCurrency(item.price)}</Text>
-          
+
           <View style={styles.actionRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.actionBtn, styles.editBtn]}
               onPress={() => navigation.navigate('EditProduct', { productId: item.id })}
             >
               <Ionicons name="pencil" size={16} color={COLORS.primary} />
               <Text style={styles.actionText}>Edit</Text>
             </TouchableOpacity>
-            
+
             {!isDeleted && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.actionBtn, styles.deleteBtn]}
                 onPress={() => handleSoftDelete(item)}
               >
@@ -119,8 +119,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Admin Dashboard</Text>
-        
         <View style={styles.actionGrid}>
           <TouchableOpacity style={styles.gridBtn} onPress={() => navigation.navigate('EditProduct', {})}>
             <Ionicons name="add-circle" size={24} color={COLORS.primary} />
@@ -140,7 +138,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <View style={styles.listHeaderContainer}>
         <Text style={styles.listTitle}>Global Inventory List</Text>
       </View>
