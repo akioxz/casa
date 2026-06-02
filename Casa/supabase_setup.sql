@@ -50,19 +50,37 @@ ALTER TABLE public.furniture ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 
 -- =========================================================================
--- 2.5 HELPER FUNCTIONS (Security Definer to prevent infinite recursion)
+-- 2.5 HELPER FUNCTIONS & TRIGGERS (Prevents infinite recursion by using JWT & metadata sync)
 -- =========================================================================
 
--- Function to check if current user is admin
+-- Function to check if current user is admin using JWT claims
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND role = 'admin'
+  RETURN COALESCE(
+    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+    OR
+    (auth.jwt() ->> 'email') LIKE '%admin%',
+    false
   );
 END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Trigger to automatically synchronize profile role updates back to auth.users metadata
+CREATE OR REPLACE FUNCTION public.sync_profile_role_to_auth()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE auth.users
+  SET raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || jsonb_build_object('role', NEW.role)
+  WHERE id = NEW.id;
+  RETURN NEW;
+END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER tr_sync_profile_role
+  AFTER INSERT OR UPDATE OF role ON public.profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.sync_profile_role_to_auth();
 
 -- =========================================================================
 -- 3. PROFILE POLICIES
