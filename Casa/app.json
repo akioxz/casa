@@ -28,7 +28,7 @@
     },
     "plugins": [],
     "extra": {
-      "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyDhwOnbniDPC4PCsOQ1pWCd4Ee4iZczvE8"
+      "EXPO_PUBLIC_GEMINI_API_KEY": ""
     }
   }
 }
