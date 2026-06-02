@@ -81,9 +81,9 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
   };
 
   const uploadImage = async (uri: string): Promise<string> => {
-    if (isMockMode) return uri; // bypass upload
-    if (uri.startsWith('http')) return uri; // already uploaded
-    if (uri.startsWith('data:')) return uri; // base64 fallback
+    if (isMockMode) return uri;
+    if (uri.startsWith('http')) return uri;
+    if (uri.startsWith('data:')) return uri;
 
     setIsUploading(true);
     try {
@@ -92,11 +92,12 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
       const filePath = `${fileName}`;
 
       const response = await fetch(uri);
-      const blob = await response.blob();
+      const arrayBuffer = await response.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
 
       const { error } = await supabase.storage
         .from('furniture')
-        .upload(filePath, blob, {
+        .upload(filePath, uint8Array, {
           contentType: `image/${fileExt}`,
           upsert: true,
         });
@@ -119,7 +120,6 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
   const onSubmit = async (data: FurniturePayload) => {
     try {
       let finalImageUrl = data.imageUrl;
-      // Convert to number if the image is a local statically required image (like those in MOCK_FURNITURE)
       if (typeof finalImageUrl === 'string' && !finalImageUrl.startsWith('http') && !finalImageUrl.startsWith('data:') && !isMockMode) {
         finalImageUrl = await uploadImage(data.imageUrl);
       }
@@ -161,16 +161,11 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
       <Text style={styles.subtitle}>{isEdit ? 'Update inventory item' : 'Add a new product to inventory'}</Text>
 
       <View style={styles.formCard}>
-        {/* Image Picker */}
         <View style={styles.imageSection}>
           <TouchableOpacity style={styles.imagePickerBtn} onPress={handlePickImage}>
             {watchImageUrl ? (
               <Image
-                source={
-                  typeof watchImageUrl === 'number'
-                    ? watchImageUrl
-                    : { uri: watchImageUrl }
-                }
+                source={typeof watchImageUrl === 'number' ? watchImageUrl : { uri: watchImageUrl }}
                 style={styles.previewImage}
               />
             ) : (
@@ -218,16 +213,12 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
             {categories.map((cat) => (
               <TouchableOpacity
                 key={cat}
-                style={[
-                  styles.categoryPill,
-                  watchCategory === cat && styles.activeCategoryPill
-                ]}
+                style={[styles.categoryPill, watchCategory === cat && styles.activeCategoryPill]}
                 onPress={() => setValue('category', cat, { shouldValidate: true })}
               >
-                <Text style={[
-                  styles.categoryPillText,
-                  watchCategory === cat && styles.activeCategoryPillText
-                ]}>{cat}</Text>
+                <Text style={[styles.categoryPillText, watchCategory === cat && styles.activeCategoryPillText]}>
+                  {cat}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -262,110 +253,26 @@ export const EditProductScreen: React.FC<EditProductScreenProps> = ({ route, nav
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    padding: THEME.spacing.lg,
-    paddingBottom: THEME.spacing.xl * 2,
-  },
-  title: {
-    fontSize: THEME.typography.fontSize.xxl,
-    fontFamily: THEME.typography.fontFamily.bold,
-    color: COLORS.primary,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: THEME.typography.fontSize.sm,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: THEME.spacing.xl,
-  },
-  formCard: {
-    backgroundColor: COLORS.surface,
-    padding: THEME.spacing.lg,
-    borderRadius: THEME.borderRadius.lg,
-    ...THEME.shadows.medium,
-  },
-  imageSection: {
-    marginBottom: THEME.spacing.lg,
-    alignItems: 'center',
-  },
-  imagePickerBtn: {
-    width: '100%',
-    height: 200,
-    borderRadius: THEME.borderRadius.md,
-    backgroundColor: '#F5F5F7',
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    borderStyle: 'dashed',
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  imagePlaceholder: {
-    alignItems: 'center',
-  },
-  imagePlaceholderText: {
-    marginTop: THEME.spacing.sm,
-    color: COLORS.textMuted,
-    fontFamily: THEME.typography.fontFamily.medium,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: THEME.typography.fontSize.xs,
-    marginTop: 4,
-    alignSelf: 'flex-start',
-  },
-  categorySection: {
-    marginBottom: THEME.spacing.md,
-  },
-  label: {
-    fontSize: THEME.typography.fontSize.sm,
-    fontFamily: THEME.typography.fontFamily.medium,
-    color: COLORS.primary,
-    marginBottom: 6,
-  },
-  categoryDeck: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  categoryPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
-  },
-  activeCategoryPill: {
-    backgroundColor: COLORS.secondary,
-    borderColor: COLORS.secondary,
-  },
-  categoryPillText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    fontFamily: THEME.typography.fontFamily.medium,
-  },
-  activeCategoryPillText: {
-    color: COLORS.surface,
-    fontFamily: THEME.typography.fontFamily.bold,
-  },
-  submitBtn: {
-    marginTop: THEME.spacing.lg,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
+  scrollContent: { padding: THEME.spacing.lg, paddingBottom: THEME.spacing.xl * 2 },
+  title: { fontSize: THEME.typography.fontSize.xxl, fontFamily: THEME.typography.fontFamily.bold, color: COLORS.primary, textAlign: 'center' },
+  subtitle: { fontSize: THEME.typography.fontSize.sm, color: COLORS.textSecondary, textAlign: 'center', marginBottom: THEME.spacing.xl },
+  formCard: { backgroundColor: COLORS.surface, padding: THEME.spacing.lg, borderRadius: THEME.borderRadius.lg, ...THEME.shadows.medium },
+  imageSection: { marginBottom: THEME.spacing.lg, alignItems: 'center' },
+  imagePickerBtn: { width: '100%', height: 200, borderRadius: THEME.borderRadius.md, backgroundColor: '#F5F5F7', borderWidth: 2, borderColor: COLORS.border, borderStyle: 'dashed', overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
+  previewImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  imagePlaceholder: { alignItems: 'center' },
+  imagePlaceholderText: { marginTop: THEME.spacing.sm, color: COLORS.textMuted, fontFamily: THEME.typography.fontFamily.medium },
+  errorText: { color: COLORS.error, fontSize: THEME.typography.fontSize.xs, marginTop: 4, alignSelf: 'flex-start' },
+  categorySection: { marginBottom: THEME.spacing.md },
+  label: { fontSize: THEME.typography.fontSize.sm, fontFamily: THEME.typography.fontFamily.medium, color: COLORS.primary, marginBottom: 6 },
+  categoryDeck: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  categoryPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  activeCategoryPill: { backgroundColor: COLORS.secondary, borderColor: COLORS.secondary },
+  categoryPillText: { fontSize: 12, color: COLORS.textSecondary, fontFamily: THEME.typography.fontFamily.medium },
+  activeCategoryPillText: { color: COLORS.surface, fontFamily: THEME.typography.fontFamily.bold },
+  submitBtn: { marginTop: THEME.spacing.lg },
 });
+
 export default EditProductScreen;
