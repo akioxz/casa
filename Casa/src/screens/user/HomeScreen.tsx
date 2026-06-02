@@ -820,6 +820,22 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+  categoryBadge: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    backgroundColor: 'rgba(13, 61, 38, 0.85)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  categoryBadgeText: {
+    color: COLORS.surface,
+    fontSize: 9,
+    fontFamily: THEME.typography.fontFamily.bold,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
 });
 
 export default HomeScreen;

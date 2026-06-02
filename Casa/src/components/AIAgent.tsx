@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontFamily: THEME.typography.fontFamily.bold,
     fontSize: 18,
-    color: COLORS.text,
+    color: COLORS.textPrimary,
   },
   chatArea: {
     flex: 1,
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   aiText: {
-    color: COLORS.text,
+    color: COLORS.textPrimary,
   },
   inputArea: {
     flexDirection: 'row',
